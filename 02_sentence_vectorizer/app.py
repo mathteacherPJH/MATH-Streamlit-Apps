@@ -9,15 +9,17 @@ os.environ['JAVA_HOME'] = '/usr/lib/jvm/default-java'
 
 st.set_page_config(page_title="문장 벡터화 프로그램", layout="wide", initial_sidebar_state="collapsed")
 
-# 1. 기존 오리지널 CSS 스타일시트 및 배경 엔진 100% 주입
+# 1. 원본 소스코드 기반의 순정 UI/UX 스타일 해킹 주입
 st.markdown("""
     <style>
-    /* 스트림릿 기본 프레임워크 강제 리셋 */
-    [data-testid="stHeader"] { display: none !important; }
-    .block-container { padding: 0rem !important; max-width: 100% !important; }
-    div[data-testid="stHorizontalBlock"] { gap: 0rem !important; }
-    
-    /* 원본 변수 및 레이아웃 시스템 복원 */
+    /* 스트림릿 기본 프레임 및 마진 진공 압축 */
+    [data-testid="stHeader"], [data-testid="stFooterBlock"] { display: none !important; }
+    .block-container { padding: 0rem !important; max-width: 100% !important; height: 100vh !important; overflow: hidden !important; }
+    div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
+    div[data-testid="stHorizontalBlock"] { gap: 20px !important; margin: 0 !important; padding: 0 !important; }
+    div[data-testid="stColumn"] { padding: 0 !important; background: transparent !important; border: none !important; box-shadow: none !important; }
+
+    /* 원본 스타일 가이드라인 (:root 변수 및 글로벌 초기화) */
     :root {
         --c-bg-main: #FBF9F4; 
         --c-bg-card: rgba(255, 255, 255, 0.73); 
@@ -25,13 +27,10 @@ st.markdown("""
         --c-text-muted: #7D7569;
         --c-border: rgba(44, 42, 41, 0.1);
         --c-accent: #2383E2;
-        --c-accent-hover: #1A6CB8;
         --c-brand-green: #1B4332;
         --c-brand-green-hover: #123024;
         --c-tag-bg: #E8F5E9;
         --c-tag-text: #2E7D32;
-        --c-removed-bg: #FFEBEE;
-        --c-removed-text: #C62828;
         --c-vector-text: #0D47A1;
         --c-tab-bg: #F4F1EA;
     }
@@ -44,16 +43,19 @@ st.markdown("""
         margin: 0 !important;
         padding: 0 !important;
         box-sizing: border-box !important;
+        overflow: hidden !important;
+        height: 100vh !important;
     }
 
     #neural-canvas {
         position: fixed;
         top: 0; left: 0;
+        width: 100%; height: 100%;
         z-index: 1;
         pointer-events: none;
     }
 
-    /* 상단 탑바 컴포넌트 복원 */
+    /* 상단 내비게이션 바 완벽 일치 */
     .top-navbar {
         position: fixed;
         top: 0; left: 0; width: 100%;
@@ -66,39 +68,32 @@ st.markdown("""
         align-items: center;
         justify-content: space-between;
         box-sizing: border-box;
+        height: 55px;
     }
     .back-btn-link {
-        background: transparent;
-        border: none;
-        color: var(--c-brand-green);
-        font-family: "Consolas", monospace;
-        font-size: 13px;
-        font-weight: 900;
-        letter-spacing: 0.15em;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        text-decoration: none;
-        transition: all 0.2s ease;
+        background: transparent; border: none; color: var(--c-brand-green);
+        font-family: "Consolas", monospace; font-size: 13px; font-weight: 900;
+        letter-spacing: 0.15em; cursor: pointer; display: flex; align-items: center;
+        gap: 6px; text-decoration: none; transition: all 0.2s ease;
     }
     .back-btn-link:hover { transform: translateX(-3px); opacity: 0.8; }
     .navbar-brand-text { font-size: 13px; font-weight: bold; color: var(--c-brand-green); letter-spacing: 0.15em; text-transform: uppercase; }
 
-    /* 메인 배치 스펙 복원 */
-    .main-container-fixed {
+    /* 화면 분할 메인 레이아웃 프레임 복원 */
+    .main-layout-fixed {
         display: flex;
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: calc(100vh - 55px);
+        margin-top: 55px;
         padding: 24px;
-        padding-top: 85px;
         gap: 20px;
         position: relative;
         z-index: 10;
         box-sizing: border-box;
     }
 
-    .orig-card {
+    /* 원본 .card 스타일 이식 */
+    .orig-card-wrapper {
         background-color: var(--c-bg-card);
         border: 1px solid var(--c-border);
         border-radius: 12px;
@@ -108,56 +103,58 @@ st.markdown("""
         box-shadow: 0 10px 30px rgba(44, 42, 41, 0.03);
         display: flex;
         flex-direction: column;
-        height: 100%;
+        height: calc(100vh - 105px);
         width: 100%;
+        position: relative;
     }
 
-    .panel-title { margin: 0 0 12px 0; font-size: 16px; color: var(--c-brand-green); font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .panel-title { margin: 0 0 12px 0; font-size: 16px; color: var(--c-brand-green); font-weight: bold; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .textarea-list-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; padding-right: 4px; }
     
-    /* 상단 내부 수동 조절 버튼 크기 세팅 */
+    /* 개별 문장 박스 구성 복원 */
+    .textarea-wrapper { position: relative; display: flex; flex-direction: column; width: 100%; }
+    .textarea-wrapper span { font-size: 11px; color: var(--c-brand-green); margin-bottom: 4px; font-weight: bold; }
+    .textarea-wrapper .char-counter { position: absolute; bottom: 8px; right: 12px; font-size: 11px; color: var(--c-text-muted); pointer-events: none; z-index: 99; }
+
+    /* 입력 박스 내부 왜곡 제거 */
+    .stTextArea textarea {
+        width: 100% !important; height: 70px !important; padding: 10px 12px !important; padding-bottom: 24px !important; box-sizing: border-box !important;
+        border: 1px solid var(--c-border) !important; border-radius: 8px !important; resize: none !important; font-size: 14px !important;
+        line-height: 1.5 !important; background-color: rgba(255, 255, 255, 0.8) !important; color: var(--c-text-main) !important; outline: none !important;
+    }
+    .stTextArea textarea:focus { border-color: var(--c-brand-green) !important; }
+    .stTextArea div[data-baseweb="textarea"] { border: none !important; background: transparent !important; }
+
+    /* 버튼 스타일 가이드 일치 연산 */
     .stButton div button {
         padding: 4px 10px !important; font-size: 12px !important; font-weight: bold !important; border: 1px solid var(--c-border) !important;
         background: white !important; border-radius: 4px !important; color: var(--c-text-main) !important; transition: all 0.2s !important;
-        height: auto !important; width: auto !important; line-height: 1.5 !important;
+        height: auto !important; width: auto !important;
     }
-    .stButton div button:hover { background: #eee !important; color: var(--c-text-main) !important; border-color: var(--c-border) !important; }
+    .stButton div button:hover { background: #eee !important; color: var(--c-text-main) !important; }
 
-    /* 좌측 내부 메인 분석 실행 버튼 커스텀 (따로 지정) */
-    .run-btn-container div button {
+    /* 하단 대형 분석 실행 버튼 스펙 매칭 */
+    .run-btn-box div button {
         width: 100% !important; padding: 14px 20px !important; background-color: var(--c-brand-green) !important; color: white !important; border: none !important; border-radius: 8px !important;
         font-size: 16px !important; font-weight: bold !important; letter-spacing: 0.05em !important;
         box-shadow: 0 4px 12px rgba(27, 67, 50, 0.15) !important; height: auto !important;
     }
-    .run-btn-container div button:hover { background-color: var(--c-brand-green-hover) !important; color: white !important; }
+    .run-btn-box div button:hover { background-color: var(--c-brand-green-hover) !important; color: white !important; }
 
-    .textarea-list-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; padding-right: 4px; }
-    .textarea-wrapper { position: relative; display: flex; flex-direction: column; width: 100%; }
-    .textarea-wrapper span { font-size: 11px; color: var(--c-brand-green); margin-bottom: 4px; font-weight: bold; }
-    .textarea-wrapper .char-counter { position: absolute; bottom: 6px; right: 12px; font-size: 11px; color: var(--c-text-muted); pointer-events: none; z-index: 99; }
-
-    .stTextArea textarea {
-        width: 100% !important; height: 70px !important; padding: 10px 12px !important; padding-bottom: 22px !important; box-sizing: border-box !important;
-        border: 1px solid var(--c-border) !important; border-radius: 8px !important; resize: none !important; font-size: 14px !important;
-        line-height: 1.5 !important; background-color: rgba(255, 255, 255, 0.8) !important; color: var(--c-text-main) !important; outline: none !important;
-    }
-    .stTextArea textarea:focus { border-color: var(--c-brand-green) !important; box-shadow: none !important; }
-    .stTextArea div[data-baseweb="textarea"] { border: none !important; background: transparent !important; }
-
-    /* 우측 탭 컴포넌트 100% 복원 */
+    /* 투박한 탭 레이아웃 오버라이딩 원본 복원 */
     div[data-testid="stTabList"] {
-        display: flex !important; gap: 4px !important; background: var(--c-tab-bg) !important; padding: 4px !important; border-radius: 8px !important; border: 1px solid rgba(44, 42, 41, 0.05) !important; width: 100% !important;
+        display: flex !important; gap: 4px !important; background: var(--c-tab-bg) !important; padding: 4px !important; border-radius: 8px !important; border: 1px solid rgba(44, 42, 41, 0.05) !important; width: 100% !important; flex-shrink: 0;
     }
     button[data-testid="stTab"] {
         flex: 1 !important; border: none !important; background: transparent !important; padding: 8px 4px !important; font-size: 12px !important; font-weight: bold !important;
-        color: var(--c-text-muted) !important; cursor: pointer !important; border-radius: 6px !important; transition: all 0.2s !important; white-space: nowrap !important; text-align: center !important;
+        color: var(--c-text-muted) !important; border-radius: 6px !important; transition: all 0.2s !important; text-align: center !important;
     }
     button[data-testid="stTab"][aria-selected="true"] {
-        background: #FFFFFF !important; color: var(--c-brand-green) !important; box-shadow: 0 2px 6px rgba(44,42,41,0.08) !important; border: none !important;
+        background: #FFFFFF !important; color: var(--c-brand-green) !important; box-shadow: 0 2px 6px rgba(44,42,41,0.08) !important;
     }
-    div[data-testid="stTabTabpanel"] { border: none !important; padding-top: 15px !important; height: calc(100vh - 200px) !important; overflow-y: auto !important; padding-right: 4px !important; }
+    div[data-testid="stTabTabpanel"] { border: none !important; padding-top: 18px !important; flex: 1 !important; overflow-y: auto !important; padding-right: 4px !important; }
 
-    /* 결과 박스 내부 테두리 요소 복원 */
-    .right-panel-content-area { display: flex; flex-direction: column; gap: 18px; width: 100%; box-sizing: border-box; }
+    /* 결과 박스 내부 정렬 */
     .result-section h3 { margin: 0 0 8px 4px; font-size: 14px; color: var(--c-brand-green); font-weight: bold; }
     .result-box-native { 
         background-color: rgba(244, 241, 234, 0.6); padding: 14px; border-radius: 8px; min-height: 48px; 
@@ -174,7 +171,6 @@ st.markdown("""
         border-radius: 4px; border: 1px solid rgba(44, 42, 41, 0.05); color: var(--c-vector-text); word-break: break-all;
     }
 
-    /* 단어집합 배지 디자인 스펙 싱크로 */
     .native-badge {
         background-color: var(--c-tag-bg); color: var(--c-tag-text); padding: 6px 12px; border-radius: 4px; font-size: 13px;
         border: 1px solid rgba(165, 214, 167, 0.6); font-weight: bold; display: inline-block;
@@ -186,7 +182,6 @@ st.markdown("""
     .textarea-list-scroll::-webkit-scrollbar-thumb, div[data-testid="stTabTabpanel"]::-webkit-scrollbar-thumb { background: rgba(44, 42, 41, 0.15); border-radius: 3px; }
     </style>
 
-    <!-- 배경 뉴럴 구조 인터랙티브 캔버스 탑재 -->
     <canvas id="neural-canvas"></canvas>
     <script>
     const bgCanvas = document.getElementById('neural-canvas');
@@ -251,12 +246,11 @@ st.markdown("""
     window.addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
     window.addEventListener('resize', resizeBgCanvas);
     
-    // 즉시 실행 트리거
     setTimeout(() => { resizeBgCanvas(); animateBg(); }, 100);
     </script>
 """, unsafe_allow_html=True)
 
-# 2. 고정 탑 내비게이션 바 컴포넌트 렌더링
+# 2. 오리지널 상단 내비바 선언
 st.markdown("""
     <nav class="top-navbar">
         <a href="https://mathteacherpjh.github.io/MATH-Program/" target="_parent" class="back-btn-link">← BACK</a>
@@ -276,141 +270,105 @@ def lemmatize_core(text):
     raw_tokens = okt.morphs(text, stem=True)
     return " ".join(raw_tokens)
 
-# 3. 레이아웃 분할 파싱
-main_layout_div = st.container()
-with main_layout_div:
-    st.markdown('<div class="main-container-fixed">', unsafe_allow_html=True)
+# 3. 레이아웃 고정 및 프레임 렌더링
+st.markdown('<div class="main-layout-fixed">', unsafe_allow_html=True)
+left_col, right_col = st.columns([1.2, 2])
+
+with left_col:
+    st.markdown('<div class="orig-card-wrapper">', unsafe_allow_html=True)
     
-    # 가로축 비율 매핑을 위한 칼럼 정의
-    left_col, right_col = st.columns([1.2, 2])
+    if "input_fields_count" not in st.session_state:
+        st.session_state.input_fields_count = 3
+        
+    st.markdown('<div class="panel-title"><span>문장 입력 (100자 이내)</span><div style="display:flex; gap:6px;">', unsafe_allow_html=True)
+    btn_col1, btn_col2 = st.columns(2)
+    with btn_col1:
+        if st.button("- 제거") and st.session_state.input_fields_count > 3:
+            st.session_state.input_fields_count -= 1
+            st.rerun()
+    with btn_col2:
+        if st.button("+ 추가") and st.session_state.input_fields_count < 10:
+            st.session_state.input_fields_count += 1
+            st.rerun()
+    st.markdown('</div></div>', unsafe_allow_html=True)
+            
+    st.markdown('<div class="textarea-list-scroll">', unsafe_allow_html=True)
+    sentences_inputs = []
+    for i in range(st.session_state.input_fields_count):
+        st.markdown(f'<div class="textarea-wrapper"><span>문장 {i+1}</span>', unsafe_allow_html=True)
+        default_string = "불편한 편의점이라는 책을 읽고 감동을 받았습니다." if i == 0 else ""
+        user_text = st.text_area(label=f"lbl_{i}", value=default_string, max_chars=100, key=f"f_{i}", label_visibility="collapsed")
+        st.markdown(f'<div class="char-counter">{len(user_text)}/100</div></div>', unsafe_allow_html=True)
+        if user_text.strip():
+            sentences_inputs.append(user_text.strip())
+    st.markdown('</div>', unsafe_allow_html=True)
     
-    with left_col:
-        st.markdown('<div class="orig-card">', unsafe_allow_html=True)
-        st.markdown('<div class="panel-title"><span>문장 입력 (100자 이내)</span></div>', unsafe_allow_html=True)
-        
-        # 입력 필드 카운트 세션 초기화
-        if "input_fields_count" not in st.session_state:
-            st.session_state.input_fields_count = 3
-            
-        # 플러스 마이너스 기능 구현을 위한 버튼 배치
-        ctrl_col1, ctrl_col2 = st.columns(2)
-        with ctrl_col1:
-            if st.button("- 제거") and st.session_state.input_fields_count > 3:
-                st.session_state.input_fields_count -= 1
-                st.rerun()
-        with ctrl_col2:
-            if st.button("+ 추가") and st.session_state.input_fields_count < 10:
-                st.session_state.input_fields_count += 1
-                st.rerun()
-                
-        st.markdown('<div class="textarea-list-scroll">', unsafe_allow_html=True)
-        sentences_inputs = []
-        for i in range(st.session_state.input_fields_count):
-            st.markdown(f'<div class="textarea-wrapper"><span>문장 {i+1}</span>', unsafe_allow_html=True)
-            
-            default_string = "불편한 편의점이라는 책을 읽고 감동을 받았습니다." if i == 0 else ""
-            user_text = st.text_area(
-                label=f"input_lbl_{i}", 
-                value=default_string, 
-                max_chars=100, 
-                key=f"user_input_field_{i}",
-                label_visibility="collapsed"
-            )
-            
-            # 실시간 글자수 카운터 매핑
-            st.markdown(f'<div class="char-counter">{len(user_text)}/100</div></div>', unsafe_allow_html=True)
-            if user_text.strip():
-                sentences_inputs.append(user_text.strip())
-                
-        st.markdown('</div>', unsafe_allow_html=True) # 리스트 스크롤 엔드
-        
-        # 메인 트리거 버튼 구역
-        st.markdown('<div class="run-btn-container">', unsafe_allow_html=True)
-        execute_analysis = st.button("분석 실행 ⚡")
-        st.markdown('</div></div>', unsafe_allow_html=True) # 레프트 카드 엔드
+    st.markdown('<div class="run-btn-box">', unsafe_allow_html=True)
+    execute_analysis = st.button("분석 실행 ⚡")
+    st.markdown('</div></div>', unsafe_allow_html=True)
 
-    with right_col:
-        st.markdown('<div class="orig-card">', unsafe_allow_html=True)
+with right_col:
+    st.markdown('<div class="orig-card-wrapper">', unsafe_allow_html=True)
+    tab_all, tab_vocab, tab_onehot, tab_freq = st.tabs(["전체보기", "1. 단어집합", "2. 원-핫 벡터", "3. 빈도수 벡터"])
+    
+    if execute_analysis and sentences_inputs:
+        processed_corpus = [lemmatize_core(s) for s in sentences_inputs]
+        vectorizer_engine = CountVectorizer(token_pattern=r'(?u)\b\w+\b')
         
-        # 기본 데이터 세팅 유무 판정 후 탭 활성화
-        tab_all, tab_vocab, tab_onehot, tab_freq = st.tabs([
-            "전체보기", "1. 단어집합", "2. 원-핫 벡터", "3. 빈도수 벡터"
-        ])
-        
-        if execute_analysis and sentences_inputs:
-            processed_corpus = [lemmatize_core(s) for s in sentences_inputs]
-            vectorizer_engine = CountVectorizer(token_pattern=r'(?u)\b\w+\b')
+        try:
+            frequency_matrix = vectorizer_engine.fit_transform(processed_corpus).toarray()
+            vocabulary_features = vectorizer_engine.get_feature_names_out()
+            one_hot_matrix = np.where(frequency_matrix > 0, 1, 0)
             
-            try:
-                frequency_matrix = vectorizer_engine.fit_transform(processed_corpus).toarray()
-                vocabulary_features = vectorizer_engine.get_feature_names_out()
-                one_hot_matrix = np.where(frequency_matrix > 0, 1, 0)
-                
-                # 가독 데이터 구조 렌더링 펑션화 대체
-                def render_vocab_section():
-                    st.markdown('<div class="result-section"><h3>1. 단어집합</h3><div class="result-box-native">', unsafe_allow_html=True)
-                    badges = "".join([f'<span class="native-badge" style="margin:4px;">{token}</span>' for token in vocabulary_features])
-                    st.markdown(badges, unsafe_allow_html=True)
-                    st.markdown('</div></div><br>', unsafe_allow_html=True)
+            def render_vocab_section():
+                st.markdown('<div class="result-section"><h3>1. 단어집합</h3><div class="result-box-native">', unsafe_allow_html=True)
+                badges = "".join([f'<span class="native-badge" style="margin:4px;">{token}</span>' for token in vocabulary_features])
+                st.markdown(badges, unsafe_allow_html=True)
+                st.markdown('</div></div><br>', unsafe_allow_html=True)
 
-                def render_onehot_section():
-                    st.markdown('<div class="result-section"><h3>2. 원-핫 벡터 (One-Hot Vector)</h3><div class="result-box-native" style="display:block;"><div class="vector-container">', unsafe_allow_html=True)
-                    for idx, (original_text, clean_text) in enumerate(zip(sentences_inputs, processed_corpus)):
-                        tokens_line = ", ".join(clean_text.split())
-                        st.markdown(f"""
-                            <div class="vector-row">
-                                <div class="sentence-summary">문장 {idx+1}: "{original_text}"</div>
-                                <div class="tokens-summary">→ 로컬 엔진 추출 복원 기본형 리스트: [ {tokens_line} ]</div>
-                                <div class="vector-display">[ {", ".join(map(str, one_hot_matrix[idx]))} ]</div>
-                            </div>
-                        """, unsafe_allow_html=True)
-                    st.markdown('</div></div></div><br>', unsafe_allow_html=True)
+            def render_onehot_section():
+                st.markdown('<div class="result-section"><h3>2. 원-핫 벡터 (One-Hot Vector)</h3><div class="result-box-native" style="display:block;"><div class="vector-container">', unsafe_allow_html=True)
+                for idx, (original_text, clean_text) in enumerate(zip(sentences_inputs, processed_corpus)):
+                    st.markdown(f"""
+                        <div class="vector-row">
+                            <div class="sentence-summary">문장 {idx+1}: "{original_text}"</div>
+                            <div class="tokens-summary">→ 로컬 엔진 추출 복원 기본형 리스트: [ {", ".join(clean_text.split())} ]</div>
+                            <div class="vector-display">[ {", ".join(map(str, one_hot_matrix[idx]))} ]</div>
+                        </div>
+                    """, unsafe_allow_html=True)
+                st.markdown('</div></div></div><br>', unsafe_allow_html=True)
 
-                def render_freq_section():
-                    st.markdown('<div class="result-section"><h3>3. 빈도수 벡터 (Frequency Vector)</h3><div class="result-box-native" style="display:block;"><div class="vector-container">', unsafe_allow_html=True)
-                    for idx, (original_text, clean_text) in enumerate(zip(sentences_inputs, processed_corpus)):
-                        tokens_line = ", ".join(clean_text.split())
-                        st.markdown(f"""
-                            <div class="vector-row">
-                                <div class="sentence-summary">문장 {idx+1}: "{original_text}"</div>
-                                <div class="tokens-summary">→ 로컬 엔진 추출 복원 기본형 리스트: [ {tokens_line} ]</div>
-                                <div class="vector-display">[ {", ".join(map(str, frequency_matrix[idx]))} ]</div>
-                            </div>
-                        """, unsafe_allow_html=True)
-                    st.markdown('</div></div></div>', unsafe_allow_html=True)
+            def render_freq_section():
+                st.markdown('<div class="result-section"><h3>3. 빈도수 벡터 (Frequency Vector)</h3><div class="result-box-native" style="display:block;"><div class="vector-container">', unsafe_allow_html=True)
+                for idx, (original_text, clean_text) in enumerate(zip(sentences_inputs, processed_corpus)):
+                    st.markdown(f"""
+                        <div class="vector-row">
+                            <div class="sentence-summary">문장 {idx+1}: "{original_text}"</div>
+                            <div class="tokens-summary">→ 로컬 엔진 추출 복원 기본형 리스트: [ {", ".join(clean_text.split())} ]</div>
+                            <div class="vector-display">[ {", ".join(map(str, frequency_matrix[idx]))} ]</div>
+                        </div>
+                    """, unsafe_allow_html=True)
+                st.markdown('</div></div></div>', unsafe_allow_html=True)
 
-                # 탭별 독립 스코프 마킹
-                with tab_all:
-                    st.markdown('<div class="right-panel-content-area">', unsafe_allow_html=True)
-                    render_vocab_section()
-                    render_onehot_section()
-                    render_freq_section()
-                    st.markdown('</div>', unsafe_allow_html=True)
-                    
-                with tab_vocab:
-                    st.markdown('<div class="right-panel-content-area">', unsafe_allow_html=True)
-                    render_vocab_section()
-                    st.markdown('</div>', unsafe_allow_html=True)
-                    
-                with tab_onehot:
-                    st.markdown('<div class="right-panel-content-area">', unsafe_allow_html=True)
-                    render_onehot_section()
-                    st.markdown('</div>', unsafe_allow_html=True)
-                    
-                with tab_freq:
-                    st.markdown('<div class="right-panel-content-area">', unsafe_allow_html=True)
-                    render_freq_section()
-                    st.markdown('</div>', unsafe_allow_html=True)
+            with tab_all:
+                render_vocab_section()
+                render_onehot_section()
+                render_freq_section()
+            with tab_vocab:
+                render_vocab_section()
+            with tab_onehot:
+                render_onehot_section()
+            with tab_freq:
+                render_freq_section()
 
-            except ValueError:
-                st.warning("유효한 형태소 토큰이 문장 안에 존재하지 않습니다.")
-        else:
-            st.markdown("""
-                <div style='color: #7D7569; font-size: 14px; text-align: center; padding-top: 150px; font-weight: bold;'>
-                    왼쪽 패널에 문장을 입력한 뒤 '분석 실행 ⚡' 버튼을 누르면<br>수학적 변환 행렬이 이곳에 실시간으로 출력됩니다.
-                </div>
-            """, unsafe_allow_html=True)
-            
-        st.markdown('</div>', unsafe_allow_html=True) # 라이트 카드 엔드
+        except ValueError:
+            st.warning("유효한 형태소 토큰이 문장 안에 존재하지 않습니다.")
+    else:
+        st.markdown("""
+            <div style='color: #7D7569; font-size: 14px; text-align: center; padding-top: 150px; font-weight: bold;'>
+                왼쪽 패널에 문장을 입력한 뒤 '분석 실행 ⚡' 버튼을 누르면<br>수학적 변환 행렬이 이곳에 실시간으로 출력됩니다.
+            </div>
+        """, unsafe_allow_html=True)
         
-    st.markdown('</div>', unsafe_allow_html=True) # 전체 컨테이너 엔드
+    st.markdown('</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
