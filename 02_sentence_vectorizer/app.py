@@ -16,14 +16,56 @@ st.markdown("""
         color: #2C2A29 !important;
         font-family: 'Malgun Gothic', -apple-system, sans-serif;
     }
+    [data-testid="stHeader"] {
+        background: rgba(0,0,0,0) !important;
+    }
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+    }
     div[data-testid="stColumn"] {
         background-color: rgba(255, 255, 255, 0.73) !important;
         border: 1px solid rgba(44, 42, 41, 0.1) !important;
         border-radius: 12px !important;
-        padding: 24px !important;
+        padding: 20px !important;
         box-shadow: 0 10px 30px rgba(44, 42, 41, 0.03) !important;
     }
-    h1, h2, h3, [data-testid="stMarkdownContainer"] p strong {
+    h1 {
+        font-size: 1.8rem !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.05em !important;
+        margin-bottom: 0.2rem !important;
+        color: #1B4332 !important;
+    }
+    .custom-caption {
+        font-size: 0.9rem !important;
+        color: #666666 !important;
+        margin-bottom: 1.5rem !important;
+    }
+    .back-btn-container {
+        margin-bottom: 1rem;
+    }
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        color: #2C2A29;
+        font-size: 0.85rem;
+        font-weight: bold;
+        background-color: rgba(44, 42, 41, 0.05);
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid rgba(44, 42, 41, 0.1);
+        transition: all 0.2s ease;
+    }
+    .back-btn:hover {
+        background-color: #1B4332;
+        color: #FBF9F4;
+        border-color: #1B4332;
+    }
+    h2, h3, [data-testid="stMarkdownContainer"] p strong {
         color: #1B4332 !important;
     }
     .stCodeBlock {
@@ -32,8 +74,10 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("SENTENCE VECTORIZER ⚡")
-st.caption("파이썬 KoNLPy 대용량 사전 기반 고성능 로컬 문장 벡터화 시스템")
+st.markdown('<div class="back-btn-container"><a href="https://mathteacherpjh.github.io/MATH-Program/" target="_parent" class="back-btn">← HISTORY BACK</a></div>', unsafe_allow_html=True)
+
+st.markdown('<h1>SENTENCE VECTORIZER ⚡</h1>', unsafe_allow_html=True)
+st.markdown('<div class="custom-caption">파이썬 KoNLPy 대용량 사전 기반 고성능 로컬 문장 벡터화 시스템</div>', unsafe_allow_html=True)
 
 @st.cache_resource
 def get_okt_tokenizer():
