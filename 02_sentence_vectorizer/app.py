@@ -62,7 +62,6 @@ st.markdown("""
         height: 55px;
     }
     
-    /* BACK 버튼 밑줄 제거 및 색상 브랜드 그린으로 일치 */
     .back-btn-link {
         background: transparent; border: none; color: var(--c-brand-green) !important;
         font-family: "Consolas", monospace; font-size: 13px; font-weight: 900;
@@ -72,7 +71,6 @@ st.markdown("""
     .back-btn-link:hover { transform: translateX(-3px); opacity: 0.8; text-decoration: none !important; }
     .navbar-brand-text { font-size: 13px; font-weight: bold; color: var(--c-brand-green); letter-spacing: 0.15em; text-transform: uppercase; }
 
-    /* 레이아웃 여백 최적화 */
     .stHorizontalBlock {
         padding: 79px 24px 24px 24px !important;
         position: relative;
@@ -225,7 +223,7 @@ st.markdown("""
 
 st.markdown("""
     <nav class="top-navbar">
-        <a href="https://mathteacherpjh.github.io/MATH-Program/" target="_parent" class="back-btn-link">← BACK</a>
+        <a href="#" onclick="window.parent.history.back(); return false;" class="back-btn-link">← BACK</a>
         <div class="navbar-brand-text">SENTENCE VECTORIZER</div>
     </nav>
 """, unsafe_allow_html=True)
