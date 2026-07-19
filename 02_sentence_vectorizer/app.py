@@ -9,17 +9,11 @@ os.environ['JAVA_HOME'] = '/usr/lib/jvm/default-java'
 
 st.set_page_config(page_title="문장 벡터화 프로그램", layout="wide", initial_sidebar_state="collapsed")
 
-# 1. 원본 소스코드 기반의 순정 UI/UX 스타일 해킹 주입
 st.markdown("""
     <style>
-    /* 스트림릿 기본 프레임 및 마진 진공 압축 */
     [data-testid="stHeader"], [data-testid="stFooterBlock"] { display: none !important; }
-    .block-container { padding: 0rem !important; max-width: 100% !important; height: 100vh !important; overflow: hidden !important; }
-    div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
-    div[data-testid="stHorizontalBlock"] { gap: 20px !important; margin: 0 !important; padding: 0 !important; }
-    div[data-testid="stColumn"] { padding: 0 !important; background: transparent !important; border: none !important; box-shadow: none !important; }
-
-    /* 원본 스타일 가이드라인 (:root 변수 및 글로벌 초기화) */
+    .block-container { padding: 0rem !important; max-width: 100% !important; }
+    
     :root {
         --c-bg-main: #FBF9F4; 
         --c-bg-card: rgba(255, 255, 255, 0.73); 
@@ -43,8 +37,6 @@ st.markdown("""
         margin: 0 !important;
         padding: 0 !important;
         box-sizing: border-box !important;
-        overflow: hidden !important;
-        height: 100vh !important;
     }
 
     #neural-canvas {
@@ -55,7 +47,6 @@ st.markdown("""
         pointer-events: none;
     }
 
-    /* 상단 내비게이션 바 완벽 일치 */
     .top-navbar {
         position: fixed;
         top: 0; left: 0; width: 100%;
@@ -70,53 +61,45 @@ st.markdown("""
         box-sizing: border-box;
         height: 55px;
     }
+    
+    /* BACK 버튼 밑줄 제거 및 색상 브랜드 그린으로 일치 */
     .back-btn-link {
-        background: transparent; border: none; color: var(--c-brand-green);
+        background: transparent; border: none; color: var(--c-brand-green) !important;
         font-family: "Consolas", monospace; font-size: 13px; font-weight: 900;
         letter-spacing: 0.15em; cursor: pointer; display: flex; align-items: center;
-        gap: 6px; text-decoration: none; transition: all 0.2s ease;
+        gap: 6px; text-decoration: none !important; transition: all 0.2s ease;
     }
-    .back-btn-link:hover { transform: translateX(-3px); opacity: 0.8; }
+    .back-btn-link:hover { transform: translateX(-3px); opacity: 0.8; text-decoration: none !important; }
     .navbar-brand-text { font-size: 13px; font-weight: bold; color: var(--c-brand-green); letter-spacing: 0.15em; text-transform: uppercase; }
 
-    /* 화면 분할 메인 레이아웃 프레임 복원 */
-    .main-layout-fixed {
-        display: flex;
-        width: 100%;
-        height: calc(100vh - 55px);
-        margin-top: 55px;
-        padding: 24px;
-        gap: 20px;
+    /* 레이아웃 여백 최적화 */
+    .stHorizontalBlock {
+        padding: 79px 24px 24px 24px !important;
         position: relative;
         z-index: 10;
-        box-sizing: border-box;
     }
 
-    /* 원본 .card 스타일 이식 */
     .orig-card-wrapper {
-        background-color: var(--c-bg-card);
-        border: 1px solid var(--c-border);
-        border-radius: 12px;
-        padding: 24px;
-        box-sizing: border-box;
-        backdrop-filter: blur(6px);
-        box-shadow: 0 10px 30px rgba(44, 42, 41, 0.03);
-        display: flex;
-        flex-direction: column;
-        height: calc(100vh - 105px);
-        width: 100%;
-        position: relative;
+        background-color: var(--c-bg-card) !important;
+        border: 1px solid var(--c-border) !important;
+        border-radius: 12px !important;
+        padding: 24px !important;
+        box-sizing: border-box !important;
+        backdrop-filter: blur(6px) !important;
+        box-shadow: 0 10px 30px rgba(44, 42, 41, 0.03) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: calc(100vh - 105px) !important;
+        width: 100% !important;
     }
 
-    .panel-title { margin: 0 0 12px 0; font-size: 16px; color: var(--c-brand-green); font-weight: bold; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-    .textarea-list-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; padding-right: 4px; }
+    .panel-title { margin: 0 0 12px 0; font-size: 16px; color: var(--c-brand-green); font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .textarea-list-scroll { flex: 1; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
     
-    /* 개별 문장 박스 구성 복원 */
     .textarea-wrapper { position: relative; display: flex; flex-direction: column; width: 100%; }
     .textarea-wrapper span { font-size: 11px; color: var(--c-brand-green); margin-bottom: 4px; font-weight: bold; }
     .textarea-wrapper .char-counter { position: absolute; bottom: 8px; right: 12px; font-size: 11px; color: var(--c-text-muted); pointer-events: none; z-index: 99; }
 
-    /* 입력 박스 내부 왜곡 제거 */
     .stTextArea textarea {
         width: 100% !important; height: 70px !important; padding: 10px 12px !important; padding-bottom: 24px !important; box-sizing: border-box !important;
         border: 1px solid var(--c-border) !important; border-radius: 8px !important; resize: none !important; font-size: 14px !important;
@@ -125,25 +108,21 @@ st.markdown("""
     .stTextArea textarea:focus { border-color: var(--c-brand-green) !important; }
     .stTextArea div[data-baseweb="textarea"] { border: none !important; background: transparent !important; }
 
-    /* 버튼 스타일 가이드 일치 연산 */
     .stButton div button {
         padding: 4px 10px !important; font-size: 12px !important; font-weight: bold !important; border: 1px solid var(--c-border) !important;
         background: white !important; border-radius: 4px !important; color: var(--c-text-main) !important; transition: all 0.2s !important;
-        height: auto !important; width: auto !important;
     }
     .stButton div button:hover { background: #eee !important; color: var(--c-text-main) !important; }
 
-    /* 하단 대형 분석 실행 버튼 스펙 매칭 */
     .run-btn-box div button {
         width: 100% !important; padding: 14px 20px !important; background-color: var(--c-brand-green) !important; color: white !important; border: none !important; border-radius: 8px !important;
         font-size: 16px !important; font-weight: bold !important; letter-spacing: 0.05em !important;
-        box-shadow: 0 4px 12px rgba(27, 67, 50, 0.15) !important; height: auto !important;
+        box-shadow: 0 4px 12px rgba(27, 67, 50, 0.15) !important;
     }
     .run-btn-box div button:hover { background-color: var(--c-brand-green-hover) !important; color: white !important; }
 
-    /* 투박한 탭 레이아웃 오버라이딩 원본 복원 */
     div[data-testid="stTabList"] {
-        display: flex !important; gap: 4px !important; background: var(--c-tab-bg) !important; padding: 4px !important; border-radius: 8px !important; border: 1px solid rgba(44, 42, 41, 0.05) !important; width: 100% !important; flex-shrink: 0;
+        display: flex !important; gap: 4px !important; background: var(--c-tab-bg) !important; padding: 4px !important; border-radius: 8px !important; border: 1px solid rgba(44, 42, 41, 0.05) !important; width: 100% !important;
     }
     button[data-testid="stTab"] {
         flex: 1 !important; border: none !important; background: transparent !important; padding: 8px 4px !important; font-size: 12px !important; font-weight: bold !important;
@@ -152,9 +131,8 @@ st.markdown("""
     button[data-testid="stTab"][aria-selected="true"] {
         background: #FFFFFF !important; color: var(--c-brand-green) !important; box-shadow: 0 2px 6px rgba(44,42,41,0.08) !important;
     }
-    div[data-testid="stTabTabpanel"] { border: none !important; padding-top: 18px !important; flex: 1 !important; overflow-y: auto !important; padding-right: 4px !important; }
+    div[data-testid="stTabTabpanel"] { border: none !important; padding-top: 18px !important; }
 
-    /* 결과 박스 내부 정렬 */
     .result-section h3 { margin: 0 0 8px 4px; font-size: 14px; color: var(--c-brand-green); font-weight: bold; }
     .result-box-native { 
         background-color: rgba(244, 241, 234, 0.6); padding: 14px; border-radius: 8px; min-height: 48px; 
@@ -175,11 +153,6 @@ st.markdown("""
         background-color: var(--c-tag-bg); color: var(--c-tag-text); padding: 6px 12px; border-radius: 4px; font-size: 13px;
         border: 1px solid rgba(165, 214, 167, 0.6); font-weight: bold; display: inline-block;
     }
-
-    /* 스크롤바 바인딩 */
-    .textarea-list-scroll::-webkit-scrollbar, div[data-testid="stTabTabpanel"]::-webkit-scrollbar { width: 6px; }
-    .textarea-list-scroll::-webkit-scrollbar-track, div[data-testid="stTabTabpanel"]::-webkit-scrollbar-track { background: transparent; }
-    .textarea-list-scroll::-webkit-scrollbar-thumb, div[data-testid="stTabTabpanel"]::-webkit-scrollbar-thumb { background: rgba(44, 42, 41, 0.15); border-radius: 3px; }
     </style>
 
     <canvas id="neural-canvas"></canvas>
@@ -250,7 +223,6 @@ st.markdown("""
     </script>
 """, unsafe_allow_html=True)
 
-# 2. 오리지널 상단 내비바 선언
 st.markdown("""
     <nav class="top-navbar">
         <a href="https://mathteacherpjh.github.io/MATH-Program/" target="_parent" class="back-btn-link">← BACK</a>
@@ -270,8 +242,6 @@ def lemmatize_core(text):
     raw_tokens = okt.morphs(text, stem=True)
     return " ".join(raw_tokens)
 
-# 3. 레이아웃 고정 및 프레임 렌더링
-st.markdown('<div class="main-layout-fixed">', unsafe_allow_html=True)
 left_col, right_col = st.columns([1.2, 2])
 
 with left_col:
@@ -371,4 +341,3 @@ with right_col:
         """, unsafe_allow_html=True)
         
     st.markdown('</div>', unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
