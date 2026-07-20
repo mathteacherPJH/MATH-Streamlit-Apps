@@ -8,7 +8,6 @@ from konlpy.tag import Okt
 from sklearn.feature_extraction.text import CountVectorizer
 import numpy as np
 
-# 자바(JVM) 경로 수동 지정 (Render 리눅스 환경 표준)
 os.environ['JAVA_HOME'] = '/usr/lib/jvm/default-java'
 if not jpype.isJVMStarted():
     try:
@@ -27,13 +26,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 진짜 형태소 분석기 Okt 장착
 okt = Okt()
 
 def lemmatize_core(text: str) -> str:
     if not text.strip():
         return ""
-    # 형태소 추출 및 기본형 복원 (KoNLPy 고유 기능)
     raw_tokens = okt.morphs(text, stem=True)
     return " ".join(raw_tokens)
 
