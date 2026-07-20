@@ -3,4 +3,4 @@ uvicorn
 konlpy
 scikit-learn
 numpy
-jpype1
+jpype1==1.5.0
