@@ -7,8 +7,11 @@ from sklearn.feature_extraction.text import CountVectorizer
 import numpy as np
 import os
 
-# 자바(JVM) 환경변수 설정 (KoNLPy 구동 필수)
+import os
+
+# Render(Ubuntu/Debian 리눅스) 환경에서의 OpenJDK 기본 경로 지정
 os.environ['JAVA_HOME'] = '/usr/lib/jvm/default-java'
+os.environ['PATH'] += f":{os.environ['JAVA_HOME']}/bin"
 
 app = FastAPI()
 
