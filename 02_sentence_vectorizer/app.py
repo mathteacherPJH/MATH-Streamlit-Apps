@@ -9,8 +9,10 @@ os.environ['JAVA_HOME'] = '/usr/lib/jvm/default-java'
 
 st.set_page_config(page_title="문장 벡터화 프로그램", layout="wide", initial_sidebar_state="collapsed")
 
+# 1. 스트림릿 순정 칼럼(column)을 원본 카드 디자인으로 오버라이딩하는 CSS
 st.markdown("""
     <style>
+    /* 기본 스트림릿 패딩 및 여백 완전 초기화 */
     [data-testid="stHeader"], [data-testid="stFooterBlock"] { display: none !important; }
     .block-container { padding: 0rem !important; max-width: 100% !important; }
     
@@ -20,7 +22,6 @@ st.markdown("""
         --c-text-main: #2C2A29;
         --c-text-muted: #7D7569;
         --c-border: rgba(44, 42, 41, 0.1);
-        --c-accent: #2383E2;
         --c-brand-green: #1B4332;
         --c-brand-green-hover: #123024;
         --c-tag-bg: #E8F5E9;
@@ -47,6 +48,7 @@ st.markdown("""
         pointer-events: none;
     }
 
+    /* 고정 상단 탑바 */
     .top-navbar {
         position: fixed;
         top: 0; left: 0; width: 100%;
@@ -71,30 +73,30 @@ st.markdown("""
     .back-btn-link:hover { transform: translateX(-3px); opacity: 0.8; text-decoration: none !important; }
     .navbar-brand-text { font-size: 13px; font-weight: bold; color: var(--c-brand-green); letter-spacing: 0.15em; text-transform: uppercase; }
 
+    /* 메인 칼럼 배치 구역 */
     .stHorizontalBlock {
-        padding: 79px 24px 24px 24px !important;
+        padding: 75px 24px 24px 24px !important;
         position: relative;
         z-index: 10;
+        gap: 20px !important;
     }
 
-    .orig-card-wrapper {
+    /* 📌 스트림릿 칼럼 자체를 '카드 상자'로 변신시키는 핵심 스타일 */
+    div[data-testid="stColumn"] > div {
         background-color: var(--c-bg-card) !important;
         border: 1px solid var(--c-border) !important;
         border-radius: 12px !important;
         padding: 24px !important;
-        box-sizing: border-box !important;
         backdrop-filter: blur(6px) !important;
         box-shadow: 0 10px 30px rgba(44, 42, 41, 0.03) !important;
-        display: flex !important;
-        flex-direction: column !important;
         min-height: calc(100vh - 105px) !important;
-        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     .panel-title { margin: 0 0 12px 0; font-size: 16px; color: var(--c-brand-green); font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-    .textarea-list-scroll { flex: 1; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
     
-    .textarea-wrapper { position: relative; display: flex; flex-direction: column; width: 100%; }
+    /* 입력 박스 레이아웃 매칭 */
+    .textarea-wrapper { position: relative; display: flex; flex-direction: column; width: 100%; margin-bottom: 12px; }
     .textarea-wrapper span { font-size: 11px; color: var(--c-brand-green); margin-bottom: 4px; font-weight: bold; }
     .textarea-wrapper .char-counter { position: absolute; bottom: 8px; right: 12px; font-size: 11px; color: var(--c-text-muted); pointer-events: none; z-index: 99; }
 
@@ -106,19 +108,22 @@ st.markdown("""
     .stTextArea textarea:focus { border-color: var(--c-brand-green) !important; }
     .stTextArea div[data-baseweb="textarea"] { border: none !important; background: transparent !important; }
 
+    /* 상단 조작 버튼 (+ 추가, - 제거) */
     .stButton div button {
         padding: 4px 10px !important; font-size: 12px !important; font-weight: bold !important; border: 1px solid var(--c-border) !important;
         background: white !important; border-radius: 4px !important; color: var(--c-text-main) !important; transition: all 0.2s !important;
     }
     .stButton div button:hover { background: #eee !important; color: var(--c-text-main) !important; }
 
+    /* 하단 대형 분석 실행 버튼 */
     .run-btn-box div button {
         width: 100% !important; padding: 14px 20px !important; background-color: var(--c-brand-green) !important; color: white !important; border: none !important; border-radius: 8px !important;
         font-size: 16px !important; font-weight: bold !important; letter-spacing: 0.05em !important;
-        box-shadow: 0 4px 12px rgba(27, 67, 50, 0.15) !important;
+        box-shadow: 0 4px 12px rgba(27, 67, 50, 0.15) !important; margin-top: 10px !important;
     }
     .run-btn-box div button:hover { background-color: var(--c-brand-green-hover) !important; color: white !important; }
 
+    /* 우측 탭 커스텀 */
     div[data-testid="stTabList"] {
         display: flex !important; gap: 4px !important; background: var(--c-tab-bg) !important; padding: 4px !important; border-radius: 8px !important; border: 1px solid rgba(44, 42, 41, 0.05) !important; width: 100% !important;
     }
@@ -131,6 +136,7 @@ st.markdown("""
     }
     div[data-testid="stTabTabpanel"] { border: none !important; padding-top: 18px !important; }
 
+    /* 결과물 카드 표현 */
     .result-section h3 { margin: 0 0 8px 4px; font-size: 14px; color: var(--c-brand-green); font-weight: bold; }
     .result-box-native { 
         background-color: rgba(244, 241, 234, 0.6); padding: 14px; border-radius: 8px; min-height: 48px; 
@@ -221,6 +227,7 @@ st.markdown("""
     </script>
 """, unsafe_allow_html=True)
 
+# 2. 상단 탑바
 st.markdown("""
     <nav class="top-navbar">
         <a href="#" onclick="window.parent.history.back(); return false;" class="back-btn-link">← BACK</a>
@@ -240,15 +247,15 @@ def lemmatize_core(text):
     raw_tokens = okt.morphs(text, stem=True)
     return " ".join(raw_tokens)
 
+# 3. 메인 레이아웃 (좌우 칼럼)
 left_col, right_col = st.columns([1.2, 2])
 
 with left_col:
-    st.markdown('<div class="orig-card-wrapper">', unsafe_allow_html=True)
-    
     if "input_fields_count" not in st.session_state:
         st.session_state.input_fields_count = 3
         
-    st.markdown('<div class="panel-title"><span>문장 입력 (100자 이내)</span><div style="display:flex; gap:6px;">', unsafe_allow_html=True)
+    st.markdown('<div class="panel-title"><span>문장 입력 (100자 이내)</span></div>', unsafe_allow_html=True)
+    
     btn_col1, btn_col2 = st.columns(2)
     with btn_col1:
         if st.button("- 제거") and st.session_state.input_fields_count > 3:
@@ -258,9 +265,7 @@ with left_col:
         if st.button("+ 추가") and st.session_state.input_fields_count < 10:
             st.session_state.input_fields_count += 1
             st.rerun()
-    st.markdown('</div></div>', unsafe_allow_html=True)
             
-    st.markdown('<div class="textarea-list-scroll">', unsafe_allow_html=True)
     sentences_inputs = []
     for i in range(st.session_state.input_fields_count):
         st.markdown(f'<div class="textarea-wrapper"><span>문장 {i+1}</span>', unsafe_allow_html=True)
@@ -269,14 +274,12 @@ with left_col:
         st.markdown(f'<div class="char-counter">{len(user_text)}/100</div></div>', unsafe_allow_html=True)
         if user_text.strip():
             sentences_inputs.append(user_text.strip())
-    st.markdown('</div>', unsafe_allow_html=True)
     
     st.markdown('<div class="run-btn-box">', unsafe_allow_html=True)
     execute_analysis = st.button("분석 실행 ⚡")
-    st.markdown('</div></div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 with right_col:
-    st.markdown('<div class="orig-card-wrapper">', unsafe_allow_html=True)
     tab_all, tab_vocab, tab_onehot, tab_freq = st.tabs(["전체보기", "1. 단어집합", "2. 원-핫 벡터", "3. 빈도수 벡터"])
     
     if execute_analysis and sentences_inputs:
@@ -337,5 +340,3 @@ with right_col:
                 왼쪽 패널에 문장을 입력한 뒤 '분석 실행 ⚡' 버튼을 누르면<br>수학적 변환 행렬이 이곳에 실시간으로 출력됩니다.
             </div>
         """, unsafe_allow_html=True)
-        
-    st.markdown('</div>', unsafe_allow_html=True)
