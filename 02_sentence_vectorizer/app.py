@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import os
 
+# 자바 환경변수 세팅
 os.environ['JAVA_HOME'] = '/usr/lib/jvm/default-java'
 
 st.set_page_config(page_title="문장 벡터화 프로그램", layout="wide", initial_sidebar_state="collapsed")
@@ -12,7 +13,6 @@ st.set_page_config(page_title="문장 벡터화 프로그램", layout="wide", in
 # 1. 원하는 거.png 스펙 100% 복원 커스텀 CSS 주입
 st.markdown("""
     <style>
-    /* 스트림릿 기본 상하단 여백 및 헤더 완전히 숨김 */
     [data-testid="stHeader"], footer, [data-testid="stFooterBlock"] { display: none !important; }
     
     :root {
@@ -51,7 +51,6 @@ st.markdown("""
         pointer-events: none;
     }
 
-    /* 슬림 상단 내비바 복원 */
     .top-navbar {
         position: fixed;
         top: 0; left: 0; width: 100%;
@@ -75,7 +74,6 @@ st.markdown("""
     .back-btn-link:hover { transform: translateX(-3px); opacity: 0.8; }
     .navbar-brand-text { font-size: 13px; font-weight: bold; color: var(--c-brand-green); letter-spacing: 0.15em; text-transform: uppercase; }
 
-    /* 메인 뷰포트 여백 조정 (스크롤 차단 1페이지 피팅) */
     .block-container {
         padding-top: 65px !important;
         padding-bottom: 15px !important;
@@ -85,7 +83,6 @@ st.markdown("""
         box-sizing: border-box !important;
     }
 
-    /* 스트림릿 칼럼 스타일 오버라이딩 (원본 카드 디자인) */
     div[data-testid="stColumn"] > div {
         background-color: var(--c-bg-card) !important;
         border: 1px solid var(--c-border) !important;
@@ -100,21 +97,13 @@ st.markdown("""
         justify-content: space-between !important;
     }
 
-    .panel-title-flex { 
-        display: flex; justify-content: space-between; align-items: center; 
-        margin-bottom: 10px; color: var(--c-brand-green); font-weight: bold; font-size: 16px;
-    }
-
-    /* 상단 조작 버튼 (+ 추가, - 제거) 우측 배치 및 전용 스펙 */
     .ctrl-btn-group { display: flex; gap: 6px; }
     .ctrl-btn-group div button {
         padding: 4px 10px !important; font-size: 12px !important; font-weight: bold !important; border: 1px solid var(--c-border) !important;
         background: white !important; border-radius: 4px !important; color: var(--c-text-main) !important; transition: all 0.2s !important;
         height: auto !important; width: auto !important;
     }
-    .ctrl-btn-group div button:hover { background: #eee !important; }
 
-    /* 문장 입력 리스트 내부 스크롤 영역 */
     .input-scroll-area {
         flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; padding-right: 4px;
     }
@@ -130,7 +119,6 @@ st.markdown("""
     .stTextArea textarea:focus { border-color: var(--c-brand-green) !important; }
     .stTextArea div[data-baseweb="textarea"] { border: none !important; background: transparent !important; }
 
-    /* 하단 대형 분석 실행 버튼 */
     .run-btn-box div button {
         width: 100% !important; padding: 13px 20px !important; background-color: var(--c-brand-green) !important; color: white !important; border: none !important; border-radius: 8px !important;
         font-size: 16px !important; font-weight: bold !important; letter-spacing: 0.05em !important;
@@ -138,7 +126,7 @@ st.markdown("""
     }
     .run-btn-box div button:hover { background-color: var(--c-brand-green-hover) !important; color: white !important; }
 
-    /* 📌 원하는 거.png의 탭 디자인 (연베이지 박스 + 하얀 입체 버튼) */
+    /* 탭 디자인 오버라이딩 */
     div[data-testid="stTabList"] {
         display: flex !important; gap: 4px !important; background: var(--c-tab-bg) !important; padding: 4px !important; border-radius: 8px !important; border: 1px solid rgba(44, 42, 41, 0.05) !important; width: 100% !important;
     }
@@ -155,7 +143,6 @@ st.markdown("""
         border: none !important; padding-top: 15px !important; height: calc(100vh - 165px) !important; overflow-y: auto !important; padding-right: 4px !important;
     }
 
-    /* 우측 결과 세션 및 '새 원형 단어' 인풋 디자인 복원 */
     .header-flex-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
     .header-flex-row h3 { margin: 0; font-size: 14px; color: var(--c-brand-green); font-weight: bold; }
     
@@ -286,7 +273,6 @@ with left_col:
     if "input_fields_count" not in st.session_state:
         st.session_state.input_fields_count = 3
         
-    # 타이틀과 조작 버튼(+ 추가, - 제거) 우측 상단 나란히 배치
     title_col, ctrl_col = st.columns([1.5, 1])
     with title_col:
         st.markdown('<div style="color:#1B4332; font-weight:bold; font-size:16px; padding-top:4px;">문장 입력 (100자 이내)</div>', unsafe_allow_html=True)
@@ -321,7 +307,6 @@ with left_col:
 with right_col:
     tab_all, tab_vocab, tab_onehot, tab_freq = st.tabs(["전체보기", "1. 단어집합", "2. 원-핫 벡터", "3. 빈도수 벡터"])
     
-    # 단어 추가 수동 세션 상태
     if "custom_vocab" not in st.session_state:
         st.session_state.custom_vocab = []
 
@@ -334,7 +319,6 @@ with right_col:
             frequency_matrix = vectorizer_engine.fit_transform(processed_corpus).toarray()
             vocabulary_features = list(vectorizer_engine.get_feature_names_out())
             
-            # 사용자 지정 단어병합
             for custom_w in st.session_state.custom_vocab:
                 if custom_w not in vocabulary_features:
                     vocabulary_features.append(custom_w)
@@ -343,18 +327,18 @@ with right_col:
         except ValueError:
             has_results = False
 
-    def render_vocab_section():
+    # 📌 중복 키 방지를 위해 tab_key 매개변수 적용
+    def render_vocab_section(tab_key):
         st.markdown('<div class="header-flex-row"><h3>1. 단어집합</h3></div>', unsafe_allow_html=True)
         
-        # 📌 우측 상단 [새 원형 단어 입력창] + [추가] 파란색 버튼 복원
         add_col1, add_col2 = st.columns([2.5, 1])
         with add_col1:
             st.markdown('<div class="add-input-box">', unsafe_allow_html=True)
-            new_word = st.text_input("new_word", placeholder="새 원형 단어", key="new_word_input", label_visibility="collapsed")
+            new_word = st.text_input("new_word", placeholder="새 원형 단어", key=f"new_word_input_{tab_key}", label_visibility="collapsed")
             st.markdown('</div>', unsafe_allow_html=True)
         with add_col2:
             st.markdown('<div class="add-btn-box">', unsafe_allow_html=True)
-            if st.button("추가", key="add_token_btn"):
+            if st.button("추가", key=f"add_token_btn_{tab_key}"):
                 if new_word.strip() and new_word.strip() not in st.session_state.custom_vocab:
                     st.session_state.custom_vocab.append(new_word.strip())
                     st.rerun()
@@ -395,11 +379,11 @@ with right_col:
         st.markdown('</div></div>', unsafe_allow_html=True)
 
     with tab_all:
-        render_vocab_section()
+        render_vocab_section("all")
         render_onehot_section()
         render_freq_section()
     with tab_vocab:
-        render_vocab_section()
+        render_vocab_section("vocab")
     with tab_onehot:
         render_onehot_section()
     with tab_freq:
